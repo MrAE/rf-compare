@@ -357,7 +357,7 @@ tt &lt;- et - st
 
 times['randomForest', 'training.time'] &lt;- tt
 sprintf(&quot;Elapsed training time %s seconds.&quot;, round(tt, 5))</code></pre>
-<pre><code>## [1] &quot;Elapsed training time 211 seconds.&quot;</code></pre>
+<pre><code>## [1] &quot;Elapsed training time 209 seconds.&quot;</code></pre>
 </div>
 <div id="ranger" class="section level2">
 <h2>ranger</h2>
@@ -386,7 +386,7 @@ tt &lt;- et - st
 
 times['rerf', 'training.time'] &lt;- tt
 sprintf(&quot;Elapsed training time %s seconds.&quot;, round(tt, 5))</code></pre>
-<pre><code>## [1] &quot;Elapsed training time 133 seconds.&quot;</code></pre>
+<pre><code>## [1] &quot;Elapsed training time 126 seconds.&quot;</code></pre>
 </div>
 <div id="s-rerf" class="section level2">
 <h2>S-rerf</h2>
@@ -406,24 +406,24 @@ tt &lt;- et - st
 
 times['srerf', 'training.time'] &lt;- tt
 sprintf(&quot;Elapsed training time %s seconds.&quot;, round(tt, 5))</code></pre>
-<pre><code>## [1] &quot;Elapsed training time 1202 seconds.&quot;</code></pre>
+<pre><code>## [1] &quot;Elapsed training time 1172 seconds.&quot;</code></pre>
 </div>
 </div>
 <div id="training-error" class="section level1">
 <h1>Training error</h1>
 <pre class="r"><code>set.seed(21209)
-system.time(rf.pred &lt;- predict(rf.mod))</code></pre>
+system.time(rf.pred &lt;- predict(rf.mod, newdata = mnist$Xtrain))</code></pre>
 <pre><code>##    user  system elapsed 
-##       0       0       0</code></pre>
+##   1.980   0.072   2.053</code></pre>
 <pre class="r"><code>system.time(ranger.pred &lt;- predict(ranger.mod, data = mnist$Xtrain)$predictions)</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.355   0.096   0.401</code></pre>
+##   1.325   0.092   0.360</code></pre>
 <pre class="r"><code>system.time(rerf.pred   &lt;- rerf::Predict(mnist$Xtrain, rerf.mod))</code></pre>
 <pre><code>##    user  system elapsed 
-##   7.450   3.381   3.727</code></pre>
+##   6.480   3.002   3.234</code></pre>
 <pre class="r"><code>system.time(srerf.pred   &lt;- rerf::Predict(mnist$Xtrain, srerf.mod))</code></pre>
 <pre><code>##    user  system elapsed 
-##  23.978   9.952   8.615</code></pre>
+##  19.355   6.950   6.548</code></pre>
 <pre class="r"><code>errors['randomForest', 'training.error'] &lt;- 
   sum(rf.pred != mnist$Ytrain)/length(mnist$Ytrain) 
 
@@ -475,16 +475,16 @@ errors['srerf', 'testing.error'] &lt;-
   sum(srerf.test != mnist$Ytest)/length(mnist$Ytest)</code></pre>
 <pre class="r"><code>times</code></pre>
 <pre><code>##              training.time prediction.time
-## randomForest           211               4
+## randomForest           209               4
 ## ranger                   4               1
-## rerf                   133               5
-## srerf                 1202              14</code></pre>
+## rerf                   126               4
+## srerf                 1172              13</code></pre>
 <pre class="r"><code>errors</code></pre>
 <pre><code>##              testing.error training.error
-## randomForest        0.0536         0.0565
-## ranger              0.0538         0.0000
-## rerf                0.0551         0.0000
-## srerf               0.0563         0.0000</code></pre>
+## randomForest        0.0535              0
+## ranger              0.0542              0
+## rerf                0.0529              0
+## srerf               0.0563              0</code></pre>
 </div>
 
 
