@@ -1,7 +1,11 @@
-# README
+README
+================
 
-This repo contains comparisons between different implementations of the
-random forest algorithm. 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
+## Repo Contents
 
+  - [**test-all**](test-all.html): Random Forest implementation
+    comparison on MNIST data
 
+-----

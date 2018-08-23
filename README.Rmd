@@ -1,0 +1,32 @@
+---
+title: "README"
+output: 
+  github_document:
+    html_preview: FALSE
+  html_document:
+    keep_md: TRUE
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+```{r, include=FALSE, eval = FALSE}
+## run this to build the README.md file.
+## takes about 1.5 minutes to run. 
+require(rmarkdown)
+rmarkdown::render('README.Rmd')
+rmarkdown::render('README.Rmd', 
+                  output_format = 'html_document', 
+                  output_file = 'index.html')
+```
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  cache = FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Repo Contents
+- [**test-all**](test-all.html): Random Forest implementation comparison
+  on MNIST data
+
+---

@@ -1,0 +1,204 @@
+---
+title: "randomForest on MNIST data"
+author: "Jesse Leigh Patsolic"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r render, eval=FALSE, echo=FALSE}
+require(rmarkdown)
+rmarkdown::render("test-all.Rmd")
+system('open test-all.html')
+```
+
+<style type="text/css">
+.table {
+    width: 40%;
+}
+tr:hover {background-color:#f5f5f5;}
+</style>
+
+
+```{r}
+require(rerf)
+require(randomForest)
+require(grf)
+require(ranger)
+
+data(mnist)
+
+times <- data.frame(
+              "training.time"  = rep(NA, 3),  
+              "prediction.time" = rep(NA, 3)
+              )
+
+errors <- data.frame( 
+              "testing.error" = rep(NA, 3), 
+              "training.error"= rep(NA, 3)
+              )
+rownames(times) <- c("randomForest", "ranger", "rerf")
+rownames(errors) <- c("randomForest", "ranger", "rerf")
+```
+
+# Setup
+
+```{r setup}
+ntrees <- 500L
+
+dfTrain <- data.frame(Y = as.factor(mnist$Ytrain), mnist$Xtrain)
+dfTest  <- data.frame(Y = as.factor(mnist$Ytest), mnist$Xtest)
+```
+
+# Training
+
+## randomForest
+```{r randomForest-training}
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), '%s'))
+
+rf.mod <- randomForest::randomForest(Y ~ ., data = dfTrain, ntree = ntrees)
+
+et <- as.numeric(format(Sys.time(), '%s'))
+tt <- et - st
+
+times['randomForest', 'training.time'] <- tt
+sprintf("Elapsed training time %s seconds.", round(tt, 5))
+```
+
+## ranger
+
+```{r ranger-training}
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), '%s'))
+
+ranger.mod <- ranger::ranger(Y ~ ., data = dfTrain, num.trees = ntrees)
+
+et <- as.numeric(format(Sys.time(), '%s'))
+tt <- et - st
+
+times['ranger', 'training.time'] <- tt
+sprintf("Elapsed training time %s seconds.", round(tt, 5))
+```
+
+## rerf
+
+```{r rerf-training}
+p <- ncol(mnist$Xtrain)
+d <- ceiling(sqrt(p))
+
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), '%s'))
+rerf.mod <- rerf::RerF(X = mnist$Xtrain, Y = mnist$Ytrain, trees = ntrees, mat.options = list(p = p, d = d, random.matrix = 'rf', NULL), max.depth = 0)
+et <- as.numeric(format(Sys.time(), '%s'))
+tt <- et - st
+
+times['rerf', 'training.time'] <- tt
+sprintf("Elapsed training time %s seconds.", round(tt, 5))
+```
+
+## S-rerf
+
+```{r srerf-training}
+iw <- ih <- 28
+patch.min <- 2
+patch.max <- 10
+
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), '%s'))
+srerf.mod <- rerf::RerF(mnist$Xtrain, mnist$Ytrain, num.cores = 1L,
+                        trees = ntrees, max.depth = 0,
+                        mat.options = list(p, d, random.matrix = "image-patch", 
+                                           iw, ih, patch.min, patch.max), 
+                        seed = 1L)
+et <- as.numeric(format(Sys.time(), '%s'))
+tt <- et - st
+
+times['srerf', 'training.time'] <- tt
+sprintf("Elapsed training time %s seconds.", round(tt, 5))
+```
+
+
+
+# Training error
+
+```{r training-error}
+set.seed(21209)
+system.time(rf.pred <- predict(rf.mod))
+system.time(ranger.pred <- predict(ranger.mod, data = mnist$Xtrain)$predictions)
+system.time(rerf.pred   <- rerf::Predict(mnist$Xtrain, rerf.mod))
+system.time(srerf.pred   <- rerf::Predict(mnist$Xtrain, srerf.mod))
+
+errors['randomForest', 'training.error'] <- 
+  sum(rf.pred != mnist$Ytrain)/length(mnist$Ytrain) 
+
+errors['ranger', 'training.error'] <- 
+  sum(ranger.pred != mnist$Ytrain)/ length(mnist$Ytrain)
+
+errors['rerf', 'training.error'] <- 
+  sum(rerf.pred != mnist$Ytrain)/length(mnist$Ytrain)
+
+errors['srerf', 'training.error'] <- 
+  sum(srerf.pred != mnist$Ytrain)/length(mnist$Ytrain)
+```
+
+
+# Testing error
+
+```{r testing-error}
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), "%s"))
+rf.test     <- predict(rf.mod, newdata = mnist$Xtest)
+et <- as.numeric(format(Sys.time(), "%s"))
+times['randomForest', 'prediction.time'] <- et - st
+
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), "%s"))
+ranger.test <- predict(ranger.mod, data = mnist$Xtest)$predictions
+et <- as.numeric(format(Sys.time(), "%s"))
+times['ranger', 'prediction.time'] <- et - st
+
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), "%s"))
+rerf.test   <- rerf::Predict(mnist$Xtest, rerf.mod)
+et <- as.numeric(format(Sys.time(), "%s"))
+times['rerf', 'prediction.time'] <- et - st
+
+set.seed(21209)
+st <- as.numeric(format(Sys.time(), "%s"))
+srerf.test   <- rerf::Predict(mnist$Xtest, srerf.mod)
+et <- as.numeric(format(Sys.time(), "%s"))
+times['srerf', 'prediction.time'] <- et - st
+
+errors['randomForest', 'testing.error'] <- 
+  sum(rf.test != mnist$Ytest)/length(mnist$Ytest) 
+
+errors['ranger', 'testing.error'] <- 
+  sum(ranger.test != mnist$Ytest)/ length(mnist$Ytest)
+
+errors['rerf', 'testing.error'] <- 
+  sum(rerf.test != mnist$Ytest)/length(mnist$Ytest)
+
+errors['srerf', 'testing.error'] <- 
+  sum(srerf.test != mnist$Ytest)/length(mnist$Ytest)
+```
+
+
+```{r results}
+times
+errors
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
